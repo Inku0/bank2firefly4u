@@ -43,3 +43,6 @@ build/
 .idea/
 
 .mvn/
+
+statement.csv
+config.json

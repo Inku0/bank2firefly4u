@@ -15,22 +15,20 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 public class DotEnv {
-	private final File dotEnvFile;
 	private static final Logger LOGGER = Logger.getLogger(DotEnv.class.getName());
+	private final File dotEnvFile;
+	private final Map<String, String> dotEnv;
 
 	public DotEnv() {
-		dotEnvFile = new File(".env");
-	}
-
-	@Nullable
-	public Map<String, String> getEnv() {
-		if (!dotEnvFile.canRead()) {
-			return null;
+		this.dotEnvFile = new File(".env");
+		if (!this.dotEnvFile.exists()) {
+			LOGGER.severe(".env file not found");
+			throw new MissingEnvException(".env file not found");
 		}
 
-		Map<String, String> env = new HashMap<>();
+		this.dotEnv = new HashMap<>();
 
-		try (var inputStream = new FileInputStream(dotEnvFile)) {
+		try {
 			List<String> content = Files.readAllLines(dotEnvFile.toPath());
 
 			for (String line : content) {
@@ -44,30 +42,30 @@ public class DotEnv {
 				String key = splitLine[0];
 				String value = splitLine[1];
 
-				env.put(key, value);
+				dotEnv.put(key, value);
 			}
 
-			return env;
-
-		} catch (FileNotFoundException e) {
-			LOGGER.severe(".env file not found");
-			return null;
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+
+	}
+
+	@Nullable
+	public Map<String, String> getEnv() {
+		return dotEnv;
 	}
 
 	@Nullable
 	public String getEnv(String name) {
-		Map<String, String> env = getEnv();
-		if (env == null) {
+		if (dotEnv == null) {
 			return null;
 		}
 
-		if (!env.containsKey(name)) {
+		if (!dotEnv.containsKey(name)) {
 			return null;
 		}
 
-		return env.get(name);
+		return dotEnv.get(name);
 	}
 }
