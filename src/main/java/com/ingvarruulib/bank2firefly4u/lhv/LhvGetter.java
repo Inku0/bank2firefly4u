@@ -25,16 +25,14 @@ public class LhvGetter implements ApiHandler {
 	public LhvGetter() {
 		this.login = getLogin();
 		if (!this.validateLogin()) {
-			System.err.println("Bad .env");
-			System.exit(1);
+			throw new MissingEnvException("Bad .env");
 		}
 	}
 
 	public LhvGetter(LhvLogin login) {
 		this.login = login;
 		if (!this.validateLogin()) {
-			System.err.println("Bad .env");
-			System.exit(1);
+			throw new MissingEnvException("Bad .env");
 		}
 	}
 

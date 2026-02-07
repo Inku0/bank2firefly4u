@@ -26,16 +26,14 @@ public class FireflySender implements ApiHandler {
 	public FireflySender(FireflyLogin fireflyLogin) {
 		this.login = fireflyLogin;
 		if (!this.validateLogin()) {
-			System.err.println("Bad .env");
-			System.exit(1);
+			throw new MissingEnvException("Bad .env");
 		}
 	}
 
 	public FireflySender() {
 		this.login = getLogin();
 		if (!this.validateLogin()) {
-			System.err.println("Bad .env");
-			System.exit(1);
+			throw new MissingEnvException("Bad .env");
 		}
 	}
 

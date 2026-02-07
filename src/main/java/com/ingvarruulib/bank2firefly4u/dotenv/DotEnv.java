@@ -22,7 +22,6 @@ public class DotEnv {
 	public DotEnv() {
 		this.dotEnvFile = new File(".env");
 		if (!this.dotEnvFile.exists()) {
-			LOGGER.severe(".env file not found");
 			throw new MissingEnvException(".env file not found");
 		}
 
