@@ -1,5 +1,6 @@
 package com.ingvarruulib.bank2firefly4u.lhv;
 
+import com.ingvarruulib.bank2firefly4u.ApiHandler;
 import com.ingvarruulib.bank2firefly4u.dotenv.DotEnv;
 import com.ingvarruulib.bank2firefly4u.dotenv.MissingEnvException;
 import com.microsoft.playwright.*;
@@ -14,21 +15,31 @@ import java.util.logging.Logger;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-public class LhvGetter {
+public class LhvGetter implements ApiHandler {
 	private static final Logger LOGGER = Logger.getLogger(LhvGetter.class.getName());
 	private static final String LHV_URL = "https://lhv.ee";
 	LhvLogin login;
 
 	public LhvGetter() {
 		this.login = getLogin();
+		if (!this.validateLogin()) {
+			System.err.println("Bad .env");
+			System.exit(1);
+		}
 	}
 
 	public LhvGetter(LhvLogin login) {
 		this.login = login;
+		if (!this.validateLogin()) {
+			System.err.println("Bad .env");
+			System.exit(1);
+		}
 	}
 
 	@NotNull
-	public static LhvLogin getLogin() {
+	@Override
+	// return the kasutajatunnus and the isikukood as a record
+	public LhvLogin getLogin() {
 		var dotEnv =  new DotEnv();
 		String kasutajaTunnus = dotEnv.getEnv("KASUTAJATUNNUS");
 		String isikukood = dotEnv.getEnv("ISIKUKOOD");
@@ -36,6 +47,20 @@ public class LhvGetter {
 			throw new MissingEnvException("KASUTAJATUNNUS and ISIKUKOOD must be set in .env");
 		}
 		return new LhvLogin(kasutajaTunnus, isikukood);
+	}
+
+	@Override
+	public boolean validateLogin() {
+		if ((this.login != null) && (this.login.isikukood() != null) && (this.login.kasutajaTunnus() != null)) {
+			if (this.login.isikukood().length() == 11) {
+				return true;
+			} else {
+				LOGGER.severe("Isikukood must be 11 numbers in length in .env, but is " + this.login.isikukood().length());
+			}
+		} else {
+			LOGGER.severe("KASUTAJATUNNUS and ISIKUKOOD must be set in .env");
+		}
+		return false;
 	}
 
 	@Nullable

@@ -8,13 +8,23 @@ import com.ingvarruulib.bank2firefly4u.lhv.LhvLogin;
 import com.microsoft.playwright.*;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class Main {
 	public static void main(String[] args) {
-		// TODO: add .env validation to the start
+		File statement = Path.of("statement.csv").toFile();
+
 		var lhvGetter = new LhvGetter();
-		File statement;
+		var fireflySender = new FireflySender();
+
+		if (statement.canRead()) {
+			if (!fireflySender.postStatementCsv(statement)) {
+				System.err.println("Failed to post statement");
+				System.exit(1);
+			}
+			System.exit(0);
+		}
 
 		try (Playwright playwright = Playwright.create()) {
 			try (Browser browser = playwright.firefox().launch(new BrowserType.LaunchOptions().setHeadless(false))) {
@@ -34,7 +44,11 @@ public class Main {
 			}
 		}
 
-		var fireflySender = new FireflySender();
-		fireflySender.postStatementCsv(statement);
+		if (!fireflySender.postStatementCsv(statement)) {
+			System.err.println("Failed to post statement");
+			System.exit(1);
+		}
+
+		System.exit(0);
 	}
 }
