@@ -12,19 +12,23 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class Main {
+	static void postStatement(File statement, FireflySender ffs) {
+		if (statement.canRead()) {
+			if (!ffs.postStatementCsv(statement)) {
+				System.err.println("Failed to post statement");
+				System.exit(1);
+			}
+			System.exit(0);
+		}
+	}
+
 	public static void main(String[] args) {
 		File statement = Path.of("statement.csv").toFile();
 
 		var lhvGetter = new LhvGetter();
 		var fireflySender = new FireflySender();
 
-		if (statement.canRead()) {
-			if (!fireflySender.postStatementCsv(statement)) {
-				System.err.println("Failed to post statement");
-				System.exit(1);
-			}
-			System.exit(0);
-		}
+		postStatement(statement, fireflySender);
 
 		try (Playwright playwright = Playwright.create()) {
 			try (Browser browser = playwright.firefox().launch(new BrowserType.LaunchOptions().setHeadless(false))) {
@@ -44,11 +48,6 @@ public class Main {
 			}
 		}
 
-		if (!fireflySender.postStatementCsv(statement)) {
-			System.err.println("Failed to post statement");
-			System.exit(1);
-		}
-
-		System.exit(0);
+		postStatement(statement, fireflySender);
 	}
 }

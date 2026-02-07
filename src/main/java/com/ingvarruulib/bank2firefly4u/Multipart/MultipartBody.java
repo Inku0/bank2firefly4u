@@ -1,29 +1,23 @@
-package com.ingvarruulib.bank2firefly4u;
+package com.ingvarruulib.bank2firefly4u.Multipart;
 
-import com.ingvarruulib.bank2firefly4u.firefly.FireflySender;
-
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.nio.file.Path;
-import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.random.RandomGenerator;
 
 import static java.net.http.HttpRequest.BodyPublishers.*;
 import static java.net.http.HttpRequest.BodyPublishers.ofString;
 
-public class MultiPartBody {
-	private static final Logger LOGGER = Logger.getLogger(MultiPartBody.class.getName());
+public class MultipartBody {
+	private static final Logger LOGGER = Logger.getLogger(MultipartBody.class.getName());
 	private static final String LINE_BREAK = "\r\n";
 	private final String boundary;
 	private BodyPublisher body;
 
-	public MultiPartBody() {
+	public MultipartBody() {
 		this.boundary = "JAVA_BOUNDARY" + UUID.randomUUID();
 		LOGGER.setLevel(Level.FINEST);
 	}
@@ -63,7 +57,7 @@ public class MultiPartBody {
 	}
 
 	public static Multipart createMultipartData(Path... files) {
-		var multipart = new MultiPartBody();
+		var multipart = new MultipartBody();
 
 		for (Path file : files) {
 			if (!file.toFile().canRead()) {

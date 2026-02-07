@@ -1,25 +1,21 @@
 package com.ingvarruulib.bank2firefly4u.firefly;
 
 import com.ingvarruulib.bank2firefly4u.ApiHandler;
-import com.ingvarruulib.bank2firefly4u.MultiPartBody;
 import com.ingvarruulib.bank2firefly4u.dotenv.DotEnv;
 import com.ingvarruulib.bank2firefly4u.dotenv.MissingEnvException;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.logging.Logger;
 
-import static com.ingvarruulib.bank2firefly4u.MultiPartBody.createMultipartData;
+import static com.ingvarruulib.bank2firefly4u.Multipart.MultipartBody.createMultipartData;
 
 public class FireflySender implements ApiHandler {
 	private static final Logger LOGGER = Logger.getLogger(FireflySender.class.getName());
