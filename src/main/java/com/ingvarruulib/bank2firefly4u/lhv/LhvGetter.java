@@ -20,6 +20,8 @@ public class LhvGetter implements ApiHandler {
 	private static final String LHV_URL = "https://lhv.ee";
 	LhvLogin login;
 
+	// TODO: add calendar date choosing
+
 	public LhvGetter() {
 		this.login = getLogin();
 		if (!this.validateLogin()) {

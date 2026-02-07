@@ -13,6 +13,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
 import static com.ingvarruulib.bank2firefly4u.Multipart.MultipartBody.createMultipartData;
@@ -49,6 +50,22 @@ public class FireflySender implements ApiHandler {
 			throw new RuntimeException(ex);
 		}
 
+		AtomicBoolean spinning = new AtomicBoolean(true);
+		Thread spinner = new Thread(() -> {
+			String[] frames = {"⠋","⠙","⠹","⠸","⠼","⠴","⠦","⠧","⠇","⠏"};
+			int i = 0;
+			while (spinning.get() && !Thread.currentThread().isInterrupted()) {
+				System.out.printf("\rUploading... %s", frames[i++ % frames.length]);
+				System.out.flush();
+				try {
+					Thread.sleep(120);
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+					break;
+				}
+			}
+		}, "firefly-upload-spinner");
+
 		var mp = createMultipartData(config, statement.toPath());
 
 		try (HttpClient client = HttpClient.newHttpClient()) {
@@ -60,6 +77,8 @@ public class FireflySender implements ApiHandler {
 					.POST(mp.body())
 					.build();
 
+			spinner.start();
+
 			var response = client.send(req, HttpResponse.BodyHandlers.ofString());
 			if (response.statusCode() != 200) {
 				LOGGER.severe("Response from Firefly importer: " + response.body());
@@ -69,6 +88,16 @@ public class FireflySender implements ApiHandler {
 			System.out.println(response.body());
 		} catch (IOException | InterruptedException e) {
 			throw new RuntimeException(e);
+		} finally {
+			spinning.set(false);
+			spinner.interrupt();
+			try {
+				spinner.join(500);
+			} catch (InterruptedException ignored) {
+				Thread.currentThread().interrupt();
+			}
+			System.out.print("\r");
+			System.out.println("Uploading... done");
 		}
 
 		return true;
