@@ -30,16 +30,24 @@ public class DotEnv {
 		try {
 			List<String> content = Files.readAllLines(dotEnvFile.toPath());
 
-			for (String line : content) {
-				String[] splitLine = line.split("=");
+			for (String rawLine : content) {
+				String line = rawLine.trim();
+				if (line.isEmpty() || line.startsWith("#")) {
+					continue;
+				}
 
-				if (splitLine.length != 2) {
+				int idx = line.indexOf('=');
+				if (idx <= 0) {
 					LOGGER.warning("Invalid line in env file: " + line);
 					continue;
 				}
 
-				String key = splitLine[0];
-				String value = splitLine[1];
+				String key = line.substring(0, idx).trim();
+				String value = line.substring(idx + 1).trim();
+
+				if ((value.startsWith("\"") && value.endsWith("\"")) || (value.startsWith("'") && value.endsWith("'"))) {
+					value = value.substring(1, value.length() - 1);
+				}
 
 				dotEnv.put(key, value);
 			}

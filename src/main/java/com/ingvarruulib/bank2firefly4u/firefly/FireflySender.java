@@ -79,7 +79,17 @@ public class FireflySender implements ApiHandler {
 
 			var response = client.send(req, HttpResponse.BodyHandlers.ofString());
 			if (response.statusCode() != 200) {
-				LOGGER.severe("Response from Firefly importer: " + response.body());
+				LOGGER.severe("Bad status code! Response from Firefly importer: " + response.body());
+				spinning.set(false);
+				spinner.interrupt();
+				try {
+					spinner.join(500);
+				} catch (InterruptedException ignored) {
+					Thread.currentThread().interrupt();
+				}
+				System.out.print("\r");
+				System.out.println("Uploading... failed!");
+
 				return false;
 			}
 
