@@ -20,14 +20,16 @@ import static com.ingvarruulib.bank2firefly4u.Multipart.MultipartBody.createMult
 
 public class FireflySender implements ApiHandler {
 	private static final Logger LOGGER = Logger.getLogger(FireflySender.class.getName());
-	private static final String AUTOUPLOAD = "/autoupload?secret=";
-	FireflyLogin login;
+	private static final String AUTO_UPLOAD = "/autoupload?secret=";
+	private final HttpClient client;
+	private final FireflyLogin login;
 
 	public FireflySender(FireflyLogin fireflyLogin) {
 		this.login = fireflyLogin;
 		if (!this.validateLogin()) {
 			throw new MissingEnvException("Bad .env");
 		}
+		this.client = HttpClient.newHttpClient();
 	}
 
 	public FireflySender() {
@@ -35,6 +37,7 @@ public class FireflySender implements ApiHandler {
 		if (!this.validateLogin()) {
 			throw new MissingEnvException("Bad .env");
 		}
+		this.client = HttpClient.newHttpClient();
 	}
 
 	public boolean postStatementCsv(File statement) {
@@ -43,7 +46,7 @@ public class FireflySender implements ApiHandler {
 
 		try {
 			// params set here
-			importer = new URI(this.login.importerUrl() + AUTOUPLOAD + this.login.autoImportSecret());
+			importer = new URI(this.login.importerUrl() + AUTO_UPLOAD + this.login.autoImportSecret());
 		} catch (URISyntaxException ex) {
 			throw new RuntimeException(ex);
 		}
@@ -65,8 +68,9 @@ public class FireflySender implements ApiHandler {
 		}, "firefly-upload-spinner");
 
 		var mp = createMultipartData(config, statement.toPath());
+		HttpResponse<String> response;
 
-		try (HttpClient client = HttpClient.newHttpClient()) {
+		try {
 			HttpRequest req = HttpRequest.newBuilder()
 					.uri(importer)
 					.header("Accept", "application/json")
@@ -77,23 +81,7 @@ public class FireflySender implements ApiHandler {
 
 			spinner.start();
 
-			var response = client.send(req, HttpResponse.BodyHandlers.ofString());
-			if (response.statusCode() != 200) {
-				LOGGER.severe("Bad status code! Response from Firefly importer: " + response.body());
-				spinning.set(false);
-				spinner.interrupt();
-				try {
-					spinner.join(500);
-				} catch (InterruptedException ignored) {
-					Thread.currentThread().interrupt();
-				}
-				System.out.print("\r");
-				System.out.println("Uploading... failed!");
-
-				return false;
-			}
-
-			System.out.println(response.body());
+			response = this.client.send(req, HttpResponse.BodyHandlers.ofString());
 		} catch (IOException | InterruptedException e) {
 			throw new RuntimeException(e);
 		} finally {
@@ -104,10 +92,19 @@ public class FireflySender implements ApiHandler {
 			} catch (InterruptedException ignored) {
 				Thread.currentThread().interrupt();
 			}
-			System.out.print("\r");
-			System.out.println("Uploading... done");
 		}
 
+		if (response.statusCode() != 200) {
+			LOGGER.severe("\n" + "Bad status code (" + response.statusCode() + ")! Response from Firefly importer: " + response.body());
+			System.out.print("\r");
+			System.out.println("Uploading... failed!");
+
+			return false;
+		}
+
+		System.out.println("\n" + response.body());
+		System.out.print("\r");
+		System.out.println("Uploading... done");
 		return true;
 	}
 
@@ -129,7 +126,7 @@ public class FireflySender implements ApiHandler {
 	@Override
 	public boolean validateLogin() {
 		try {
-			var _ = new URI(this.login.importerUrl() + AUTOUPLOAD + this.login.autoImportSecret());
+			var _ = new URI(this.login.importerUrl() + AUTO_UPLOAD + this.login.autoImportSecret());
 		} catch (URISyntaxException ex) {
 			LOGGER.severe("Malformed URL in .env: " + this.login.importerUrl() + ": " + ex.getMessage());
 			if (this.login.importerUrl().startsWith("\"") && this.login.importerUrl().endsWith("\"")) {
