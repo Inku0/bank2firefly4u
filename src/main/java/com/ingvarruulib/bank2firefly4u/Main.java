@@ -1,15 +1,14 @@
 package com.ingvarruulib.bank2firefly4u;
 
-import com.ingvarruulib.bank2firefly4u.dotenv.DotEnv;
-import com.ingvarruulib.bank2firefly4u.dotenv.MissingEnvException;
 import com.ingvarruulib.bank2firefly4u.firefly.FireflySender;
 import com.ingvarruulib.bank2firefly4u.lhv.LhvGetter;
-import com.ingvarruulib.bank2firefly4u.lhv.LhvLogin;
-import com.microsoft.playwright.*;
+import com.microsoft.playwright.Browser;
+import com.microsoft.playwright.BrowserType;
+import com.microsoft.playwright.Page;
+import com.microsoft.playwright.Playwright;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public class Main {
 	static void postStatement(File statement, FireflySender ffs) {

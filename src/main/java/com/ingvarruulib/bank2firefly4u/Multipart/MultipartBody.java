@@ -9,7 +9,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static java.net.http.HttpRequest.BodyPublishers.*;
-import static java.net.http.HttpRequest.BodyPublishers.ofString;
 
 public class MultipartBody {
 	private static final Logger LOGGER = Logger.getLogger(MultipartBody.class.getName());
