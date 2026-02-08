@@ -11,7 +11,8 @@ import java.io.File;
 import java.nio.file.Path;
 
 public class Main {
-	static void postStatement(File statement, FireflySender ffs) {
+	private static final boolean headless = true;
+	static void tryPostStatement(File statement, FireflySender ffs) {
 		if (statement.canRead()) {
 			if (!ffs.postStatementCsv(statement)) {
 				System.err.println("Failed to post statement");
@@ -27,10 +28,10 @@ public class Main {
 		var lhvGetter = new LhvGetter();
 		var fireflySender = new FireflySender();
 
-		postStatement(statement, fireflySender);
+		tryPostStatement(statement, fireflySender);
 
 		try (Playwright playwright = Playwright.create()) {
-			try (Browser browser = playwright.firefox().launch(new BrowserType.LaunchOptions().setHeadless(false))) {
+			try (Browser browser = playwright.firefox().launch(new BrowserType.LaunchOptions().setHeadless(headless))) {
 				var browserContext = browser.newContext();
 
 				Page loginPage = lhvGetter.login(browserContext);
@@ -47,6 +48,6 @@ public class Main {
 			}
 		}
 
-		postStatement(statement, fireflySender);
+		tryPostStatement(statement, fireflySender);
 	}
 }
